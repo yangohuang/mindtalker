@@ -96,7 +96,7 @@ experiments:
     - "FlashHead audio confidence threshold pass rate"
   baseline_value: null   # to be measured: Phase 1 naive pipeline SyncNet on the same val set
   best_value: null
-  total_runs: 6
+  total_runs: 7
   best_value: 0.9421  # layer-12 cos sim TTS_dylan vs real_zh_podcast — first real B1-B0 measurement
   trajectory:
     - run_id: "run_001"
@@ -133,6 +133,26 @@ experiments:
       blockers:
         - "GPU OOM persists across loop tick #2 (200MB free)"
         - "pip install blocked: flashhead env pip resolves to ~/.local/lib/python3.10 (CLAUDE.md contamination warning)"
+    - run_id: "run_007"
+      hypothesis: "H0.1"
+      type: "decisive-probe"
+      metric_value: 1.41   # max/min ratio of FlashHead AudioProjModel.proj1 per-layer weight norm
+      delta: null
+      wall_time_min: 4
+      change_summary: "src/h0_1_proj1_layer_norm.py: loaded FlashHead AudioProjModel.proj1.weight (512, 46080) from SoulX-FlashHead-1_3B/Model_Lite/diffusion_pytorch_model.safetensors. Reshaped to (out=512, window=5, layers=12, dim=768) and computed Frobenius norm per layer. **Result: early-layer weight norm > late-layer**. Layer 1=0.0918 share (max), layer 12=0.0651 (min), ratio=1.41. Per-window norms uniform (~0.20 each). **H0.1 SUPPORT**: FlashHead reads acoustic (early) layers more heavily, which is exactly where TTS vs real cos drops to 0.60 (run_006). → layer-gate Bridge MLP should have clear improvement headroom on Phase 1 SyncNet."
+      timestamp: "2026-05-08"
+      git_commit: pending
+      key_finding: |
+        FlashHead AudioProjModel.proj1.weight (the Linear that flatten-mixes 12 wav2vec2 layers
+        into 32 cross-attn tokens) has weight L2-norm SHARE per wav2vec2 layer:
+          layer  1: 0.0918  ← MAX (acoustic / low-level)
+          layer  6: 0.0861
+          layer 11: 0.0685
+          layer 12: 0.0651  ← MIN (semantic)
+        max/min = 1.41 (41% more weight on early than late)
+        Combined with run_006's per-layer cos pattern (early=0.60, late=0.99):
+        → Bridge MLP capacity invested in early layers will most reduce FlashHead's
+          domain-shift exposure. H0 has clear headroom; H0 NOT predicted to refute.
     - run_id: "run_006"
       hypothesis: "H0"
       type: "first-real-metric + design-revision"
