@@ -77,9 +77,57 @@ Layer-12 norm range: 4.36 (001) — 7.53 (talk). **talk 显著 outlier**：layer
 
 phase2-final-plan **下一次 vault 修订** 应该把 A1 拆成 A1.1/A1.2/A1.3，并默认推 A1.1。
 
+### run_006 · 首个真实 B1-B0 metric — Per-layer 域漂移 pattern
+
+**实验**：Qwen3-TTS Dylan 合成"今天天气不错，适合出门散步…"4.16s 中文 → wav2vec2 features (104, 12, 768)，与 podcast_sichuan_001 真人中文对比。
+
+**Layer-12 整体 cos sim**：
+
+| Pair | cos |
+|---|---|
+| TTS Dylan vs 真人中文 podcast | **0.9421** |
+| TTS Dylan vs 粤语真人 | 0.9513 |
+| TTS Dylan vs 英文 scott | 0.9378 |
+| Reference 同语种真人 (run_004) | > 0.96 |
+| Reference 跨语种真人 (run_004) | 0.90-0.93 |
+
+→ TTS 落在跨语种和同语种之间，是"normal-sounding synthetic speech"，不像 atypical talk.wav (0.60)。
+
+**核心 finding — Per-layer 渐变模式**：
+
+| Layer | cos (TTS vs real_zh) | 解读 |
+|---|---|---|
+| 1 | **0.5961** | **早层声学层域差巨大** — TTS 与真人完全不同的低层 acoustic profile |
+| 3 | 0.8052 | 音素层 |
+| 6 | 0.8085 | 音节层 |
+| 9 | 0.8763 | 中间层 |
+| 11 | **0.9956** | **近完全一致** — 深层语义抽象 TTS≈real |
+| 12 | 0.9421 | last layer，整体表征 |
+
+**Insight**：合成 vs 真人 wav2vec2 域漂移**集中在早层**（acoustic / 韵律），**深层近 identity**（semantic）。FlashHead 的 AudioProjModel **flatten-mixes 全部 12 层**（5×12×768=46080 → Linear 512）→ **继承分层域漂移**。
+
+**对 H0 (Bridge MLP) 的预判修正**：
+
+| 预判版本 | 依据 | 预测 |
+|---|---|---|
+| 旧（pre-run_006）| layer-12 cos 0.94 | Bridge gap 偏小，H0 难显著提升 |
+| **新**（post-run_006）| per-layer 渐变 | **早层有 0.4 cos gap，layer-gated Bridge MLP 7M 集中修复早层后可能显著提升** |
+
+**Bridge MLP 设计修正**（已实现）：`BridgeMLPLight` 加 `layer_gate`（12 sigmoid 标量，init=0 → start as residual identity，让模型自动选择"修哪些层"）。早层 gate 学到大值，深层 gate 学到 ~0（pass through）。
+
+**新的次假设 H0.1**：检查 FlashHead `AudioProjModel.proj1.weight`（46080→512 Linear），按 layer 分组算 norm。若早层 norm 大 → H0 + layer-gate Bridge 有清晰改进空间；若晚层 norm 大 → H0 大概率 refute。**这是下次 GPU window 第一个跑的实验**。
+
 ## Patterns and Insights
 
-（待 outer loop cycle 1 后填充。）
+**截至 outer loop cycle 3（2026-05-08，after run_006）**：
+
+1. **Per-layer 探针 >> 单 aggregate cos**：layer-12 cos 0.94 暗示"小 gap"，但 per-layer 显示早层 0.60 大 gap。如果只看 aggregate，会错失关键设计 insight。**Methodological lesson**：所有 cross-distribution 测试都应做 per-layer 分解，不能只看 last_hidden_state。
+
+2. **一段 4 秒 TTS 改变研究方向**：从 "Bridge MLP 大概率 refute" 到 "可能显著提升 + 设计修正为 layer_gate"。这违反"实验需要大量样本"直觉——**当假设是关于 distribution shape 的，1-5 个样本就足以提供高信息密度的设计指导**。
+
+3. **BridgeMLP 设计与 wav2vec2 layer 语义耦合**：早层 = 声学，深层 = 语义。合成语音的 domain shift 是"非平稳的"——深层 ≈ 真人，早层 ≠ 真人。任何 single-MLP 等权处理这 12 层都会浪费容量。layer_gate 是 minimal 修正。
+
+4. **GPU contention 是间断的**：3 ticks 全占 → 1 tick 20GB free。要有"random-access GPU window"准备：所有 5min 内能跑的实验代码就绪。run_006 抓住这个 window。
 
 ## Lessons and Constraints
 
@@ -115,6 +163,8 @@ phase2-final-plan **下一次 vault 修订** 应该把 A1 拆成 A1.1/A1.2/A1.3�
 | run_002 | H0 | stage-spike | n/a | 2 min | wav2vec2 stage CPU spike ✓ (1648, 12, 768) |
 | run_003 | H0 | scaffolding | loss 0.43→0.43 dry-run | 5 min | training loop + syncnet stub + val plan |
 | run_004 | H0 | distribution-probe | cos sim 0.8527 | 3 min | 5-clip wav2vec2 layer-12 cosine matrix; talk outlier |
+| run_005 | H0+H1 | B0 video + source | qualitative "OK" | 12 min | First real video B0; A1→A1.1 multi-head redesign |
+| run_006 | H0 | **first real B1-B0 metric** | **0.9421 (layer-12)** | 6 min | Qwen3-TTS Dylan vs real_zh; per-layer pattern (L1=0.60, L11=0.996); BridgeMLP layer_gate added |
 
 primary metric (SyncNet) 仍未测出，受 GPU 阻塞。**Trajectory plot 留待首个真实 metric run 后绘制**。
 
