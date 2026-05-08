@@ -96,7 +96,7 @@ experiments:
     - "FlashHead audio confidence threshold pass rate"
   baseline_value: null   # to be measured: Phase 1 naive pipeline SyncNet on the same val set
   best_value: null
-  total_runs: 4
+  total_runs: 5
   trajectory:
     - run_id: "run_001"
       hypothesis: "H0"
@@ -132,6 +132,16 @@ experiments:
       blockers:
         - "GPU OOM persists across loop tick #2 (200MB free)"
         - "pip install blocked: flashhead env pip resolves to ~/.local/lib/python3.10 (CLAUDE.md contamination warning)"
+    - run_id: "run_005"
+      hypothesis: "H0 + H1"
+      type: "B0-video + source-analysis"
+      metric_value: null    # qualitative: user judged "还行" (acceptable)
+      delta: null
+      wall_time_min: 12
+      change_summary: "GPU freed (20GB). (a) FlashHead Lite inference: real podcast_sichuan_16k.wav (65.9s) → wav2vec2 → FlashHead Lite → flashhead_b0_001.mp4 (3.4MB). User qualitative judgment: 'acceptable'. (b) MiniCPM-o-4.5 audio gen FAILED — init_tts requires cosyvoice package, pip blocked by ~/.local pollution. (c) MiniMind-O source analysis (model_omni.py:288-312): bridge_layer = num_hidden_layers//2-1 (computed not fixed); Talker forward fuses bridge_states*text_scale(3.0) + audio_history_emb*audio_scale(1.0); 4-layer Talker with hidden_size=768. **Design impact**: original A1 ignored audio history input. Split A1 into A1.1/A1.2/A1.3, A1.1 (preserve audio token history + parallel wav2vec2 head) recommended."
+      timestamp: "2026-05-08"
+      git_commit: pending
+      qualitative_finding: "B0 video quality is usable — FlashHead Lite produces acceptable lip-sync from real audio. Research has meaningful upper bound."
     - run_id: "run_004"
       hypothesis: "H0"
       type: "distribution-probe"
