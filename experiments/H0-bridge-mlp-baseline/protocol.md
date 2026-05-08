@@ -69,16 +69,29 @@ loss_warmup = MSE(bridge(x), x) × 100 step
 
 → **训练 protocol 待 Iter 1 实验前用小规模 30 段 spike 验证设计可行性**。
 
-## 评测
+## 评测 — 4-baseline 矩阵（修订）
+
+修订设计：不止一个 baseline，需要 4 条对照线，从松到严：
+
+| Tier | 输入到 FlashHead 的 features | 角色 | 期望 SyncNet |
+|---|---|---|---|
+| **B0 · upper bound** | Real human audio → wav2vec2 (FlashHead 训练数据同分布) | FlashHead 自身天花板 | best |
+| **B1 · Phase 1 朴素** | MiniCPM-o output audio → wav2vec2 | 工程链路 baseline | should be close to B0 |
+| **B2 · H0 Bridge** | MiniCPM-o output → wav2vec2 → BridgeMLP → FlashHead | 本假设 | hopefully > B1 |
+| **B3 · 上限对照** | MiniCPM-o output → BridgeMLP trained against B0's features | Bridge MLP 上限测试 | proxy for B2 ceiling |
+
+**关键洞察**：B0 vs B1 之间的 gap = "MiniCPM-o 音频带来的 distribution shift"。这才是 Bridge MLP 真正要补偿的间隙。如果 B0 ≈ B1，说明 MiniCPM-o 音频质量足够好、wav2vec2 features 没 domain gap → H0 必然 refute（Bridge MLP 没空间）。
+
+→ **所以 B0 测量是 H0 评估的真正前置**，不是仅 B1。
+
+**指标**：
 
 | 指标 | 计算方式 | 目标值 |
 |---|---|---|
-| SyncNet LSE-D | 100 段 held-out | < Phase 1 baseline |
-| SyncNet LSE-C | 100 段 held-out | > Phase 1 baseline |
-| FlashHead audio confidence | 100 段平均 | > Phase 1 baseline |
-| MOS（可选） | 5 人盲测 5 段 | > Phase 1 baseline |
-
-**Baseline 来源**：Phase 1 朴素链路（即"裸 wav2vec2 features 直喂 FlashHead"）的 SyncNet 分数。**必须在 H0 之前测出 baseline**，否则无对照。
+| SyncNet LSE-D | 100 段 held-out | B2 < B1 |
+| SyncNet LSE-C | 100 段 held-out | B2 > B1 |
+| FlashHead audio confidence | 100 段平均 | B2 > B1 |
+| Δ(B2-B1) / Δ(B0-B1) | 修复比例 | > 0.5 表示 Bridge MLP 有效 |
 
 ## 工作量分解
 
