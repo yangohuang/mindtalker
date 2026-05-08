@@ -96,8 +96,17 @@ experiments:
     - "FlashHead audio confidence threshold pass rate"
   baseline_value: null   # to be measured: Phase 1 naive pipeline SyncNet on the same val set
   best_value: null
-  total_runs: 0
-  trajectory: []
+  total_runs: 1
+  trajectory:
+    - run_id: "run_001"
+      hypothesis: "H0"
+      type: "design-verification"
+      metric_value: null     # not a metric run; design check only
+      delta: null
+      wall_time_min: 1
+      change_summary: "BridgeMLPLight params verified 7.09M, BridgeMLPHeavy 92.29M. I/O shape (B,T,12,768) confirmed correct for FlashHead input. Smoke test passed on flashhead conda env (torch 2.7.1+cu128)."
+      timestamp: "2026-05-08"
+      git_commit: pending
 
 outer_loop:
   cycle: 0
