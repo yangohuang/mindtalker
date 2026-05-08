@@ -82,13 +82,17 @@ The gate is initialized to zero so the model starts as the identity (BridgeMLP o
 
 We probe two independent quantities to motivate the layer gate.
 
-**Probe 1: Per-layer synthetic-vs-real cosine similarity (run_006)**. Using Qwen3-TTS-1.7B (voice "dylan") as a representative high-quality synthetic Chinese speech generator, we synthesize a 4.16 s utterance and compare its `wav2vec2-base-960h` per-layer hidden states against a 65.9 s real Chinese podcast clip (mean-pooled per layer):
+**Probe 1: Per-layer synthetic-vs-real cosine similarity**. We synthesize 125 Chinese utterances using Qwen3-TTS-1.7B with 5 voices × 25 sentences, totaling ~10 minutes of synthetic speech, and compare against 5 real Chinese audios via `wav2vec2-base-960h`. We report two complementary measurements:
 
-| Layer  | 1     | 3     | 6     | 9     | 11    | 12    |
-|--------|-------|-------|-------|-------|-------|-------|
-| cos    | 0.596 | 0.805 | 0.808 | 0.876 | **0.996** | 0.942 |
+* **Single-clip worst case** (run_006): one Qwen3-TTS Dylan vs one real podcast clip — to characterize the worst individual gap.
+* **Distribution-level mean** (run_008): 125 TTS clips vs 5 real clips, mean-then-cosine per layer — to characterize the stable shift.
 
-The domain shift is monotone and concentrated: layers 1-7 differ substantially (cos 0.6-0.8), layers 11+ are nearly identical (cos > 0.99). We hypothesize this reflects wav2vec2's well-known layered semantics: shallow layers encode acoustic details (which TTS notably differs in), deep layers encode abstract semantics (where TTS already matches).
+| Layer       | 1     | 3     | 6     | 9     | 11    | 12    |
+|-------------|-------|-------|-------|-------|-------|-------|
+| single-clip | 0.596 | 0.805 | 0.808 | 0.876 | 0.996 | 0.942 |
+| **distribution** | **0.847** | 0.942 | 0.950 | 0.959 | **0.996** | 0.973 |
+
+Two findings emerge. (i) The qualitative pattern is identical at both scales: monotone increase from acoustic to semantic layers, with layer 11 near-identity. (ii) The absolute gap is much smaller at distribution scale (max gap 0.15 vs single-clip 0.40); much of the single-clip gap reflects voice/content idiosyncrasy that averages out across batches. The honest distribution-level effect on H0's headroom is therefore moderate, not large. We hypothesize this reflects wav2vec2's well-known layered semantics: shallow layers encode acoustic details (where TTS still differs from real, even in distribution), deep layers encode abstract semantics (where TTS already matches).
 
 **Probe 2: Per-layer FlashHead AudioProjModel weight share (run_007)**. We extract the proj1 weight `(out=512, in=46080)` from `SoulX-FlashHead-1_3B/Model_Lite/diffusion_pytorch_model.safetensors`, reshape its input axis as `(window=5, layer=12, dim=768)`, and compute the Frobenius norm grouped by wav2vec2 layer:
 
@@ -98,16 +102,16 @@ The domain shift is monotone and concentrated: layers 1-7 differ substantially (
 
 The weight share decreases monotonically from early to late layers: FlashHead allocates 41% more capacity to acoustic features than to semantic ones. This is consistent with the design intuition that lip-sync requires phonetic information available in shallow wav2vec2 layers.
 
-**Combined**: FlashHead is most sensitive precisely where the synthetic-vs-real domain shift is largest. The product of probes 1 and 2 forms an "effective domain exposure" per layer:
+**Combined**: FlashHead is most sensitive precisely where the synthetic-vs-real domain shift is largest. The product of probes 1 and 2 forms an "effective domain exposure" per layer (using distribution-level cosine, the more honest figure):
 
-| Layer  | (1 - cos) | weight share | exposure |
-|--------|-----------|--------------|----------|
-| 1      | 0.404     | 0.0918       | **0.0371** |
-| 6      | 0.192     | 0.0861       | 0.0165 |
-| 11     | 0.004     | 0.0685       | 0.0003 |
-| 12     | 0.058     | 0.0651       | 0.0038 |
+| Layer  | (1 - cos_dist) | weight share | exposure |
+|--------|----------------|--------------|----------|
+| 1      | 0.153          | 0.0918       | **0.01405** |
+| 6      | 0.050          | 0.0861       | 0.00431 |
+| 11     | 0.004          | 0.0685       | 0.00027 |
+| 12     | 0.027          | 0.0651       | 0.00176 |
 
-Layer 1 carries 100× more effective exposure than layer 11. A Bridge MLP that can selectively focus on early layers should therefore reduce Phase 1 (TTS → wav2vec2 → FlashHead) SyncNet errors substantially. The layer-gate gives the model exactly that selectivity.
+Layer 1 carries ~50× more effective exposure than layer 11 (3× ratio between layer 1 and layer 6). A Bridge MLP that can selectively focus on early layers should reduce Phase 1 SyncNet errors, but the absolute headroom is moderate (~0.014 in cumulative cosine deficit at layer 1, weighted into FlashHead's bottleneck). We expect a 0.2-0.3 SyncNet point improvement from H0's layer-gate Bridge MLP, not a 0.5+ point one. This is consistent with prior intuition that "5M-param Adapters are enough" for many synthetic-vs-real audio adaptations.
 
 # 4 Experimental Setup
 

@@ -96,7 +96,7 @@ experiments:
     - "FlashHead audio confidence threshold pass rate"
   baseline_value: null   # to be measured: Phase 1 naive pipeline SyncNet on the same val set
   best_value: null
-  total_runs: 7
+  total_runs: 8
   best_value: 0.9421  # layer-12 cos sim TTS_dylan vs real_zh_podcast — first real B1-B0 measurement
   trajectory:
     - run_id: "run_001"
@@ -133,6 +133,26 @@ experiments:
       blockers:
         - "GPU OOM persists across loop tick #2 (200MB free)"
         - "pip install blocked: flashhead env pip resolves to ~/.local/lib/python3.10 (CLAUDE.md contamination warning)"
+    - run_id: "run_008"
+      hypothesis: "H0"
+      type: "distribution-scale calibration"
+      metric_value: 0.847   # distribution-level layer-1 cos (vs run_006 single 0.596)
+      delta: null
+      wall_time_min: 15
+      change_summary: "Generated 125 TTS clips (5 voices × 25 sentences, ~10 min total) via Qwen3-TTS skill batch script. Extracted wav2vec2 features per-clip (CPU). Compared against 5 real audios. **Distribution-level finding**: per-layer cos pattern survives but gap shrinks. Layer 1: single-clip 0.596 → distribution 0.847 (gap from 0.40 to 0.15). Late layers unchanged (layer 11=0.996). Conclusion: single-clip 0.60 finding was partly individual idiosyncrasy; honest H0 headroom estimate is ~0.014 cumulative effective domain exposure (weighted by FlashHead AudioProjModel). Predicted SyncNet improvement from H0 revised: 0.2-0.3 pts (not 0.5+ pts)."
+      timestamp: "2026-05-08"
+      git_commit: pending
+      key_finding: |
+        Distribution-level (125 TTS × 5 real, mean-vs-mean) per-layer cosine:
+          layer  1: 0.847  (single-clip was 0.596)
+          layer  6: 0.950  (was 0.808)
+          layer 11: 0.996  (unchanged)
+          layer 12: 0.973  (was 0.942)
+        Single-clip findings exaggerated the early-layer gap due to voice/content
+        idiosyncrasy. Distribution-level domain shift is real but moderate.
+        Effective domain exposure (probe1 × probe2) for layer 1 = 0.014 (was 0.037).
+        Honest paper claim: "we expect 0.2-0.3 SyncNet pt improvement from H0",
+        not "we expect 0.5+ SyncNet pt improvement from H0".
     - run_id: "run_007"
       hypothesis: "H0.1"
       type: "decisive-probe"
