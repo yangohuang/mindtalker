@@ -44,6 +44,39 @@ Layer-12 norm range: 4.36 (001) — 7.53 (talk). **talk 显著 outlier**：layer
 
 **对 H0 的含义**：wav2vec2 layer-12 对说话人/语种弱敏感、对 audio-quality atypicality 强敏感。如果 MiniCPM-o 输出听上去是"普通合成语音"（无明显 artifact），它的 features 与真人 podcast features 的 cos sim 估计 > 0.93 — Bridge MLP 可学习 gap 偏小，但非零。如果有合成 artifact，gap 显著。**关键 next experiment：跑一次 MiniCPM-o 输出 vs 同句真人录音的 features 对比**（需 GPU）。
 
+### run_005 · MiniMind-O 源码深度解析（关键设计修订）
+
+读 `minimind-o/model/model_omni.py:288-312` 后**新发现**：
+
+1. **Hidden Bridge 是计算式不是固定数**：`bridge_layer = num_hidden_layers // 2 - 1`（line 29）。8 层 Thinker → 第 3 层（与公众号一致）；如果换更深 Thinker，bridge 自动调整。设计支持 H3 ablation。
+
+2. **Talker 不仅吃 thinker bridge，还吃历史 audio_ids embedding**（line 301）：
+   ```python
+   hidden_states = embed_proj(bridge_states) * text_scale(=3.0)
+                 + codec_proj(talker_emb) * audio_scale(=1.0)
+   ```
+   两条路并行输入 Talker，learnable scalar 加权融合。**text 权重显著大（3.0 vs 1.0）**。
+
+3. **Talker config**：4 层 MiniMindBlock + RMSNorm + TalkerHead + RoPE，hidden_size=768，8 codebook 共享 vocab 2112 (=2048 + pad/stop/spk specials)。
+
+4. **TalkerHead 是低秩 adapter**：`audio_vocab_size=2112` 共享基座，每码本独立小 adapter（与 vault 公众号"低秩 adapter 共享基座"一致）。
+
+**对 H1 (A1 方案) 的设计影响**：
+
+原 phase2-final-plan A1 = "Talker 输出从 8 codebook 切到 wav2vec2 last_hidden_state"。但**忽略了输入端**——Talker 当前还以历史 audio token embedding 作为输入。改输出空间后，自回归输入怎么处理？
+
+新增子方案：
+
+| 方案 | Talker 输入 | Talker 输出 | 复杂度 |
+|---|---|---|---|
+| **A1.1** | 保留原 audio_ids embedding (即 Mimi token history) | last_hidden_state 768D | low — 双输出头并行 |
+| **A1.2** | 改成 history wav2vec2 features (768D direct) | last_hidden_state 768D | high — 输入空间也变 |
+| A1.3 | 仅 thinker bridge + 0 audio history | last_hidden_state 768D | mid — 无自回归 history |
+
+→ **A1.1 最优 first try**：保留 audio token history（Talker 仍能并行预测 Mimi 码本作为 regularization / sanity），只额外加一路 wav2vec2 head。这是 phase2-final-plan 的 "joint head Y 路线" 与 A1 的合并版。
+
+phase2-final-plan **下一次 vault 修订** 应该把 A1 拆成 A1.1/A1.2/A1.3，并默认推 A1.1。
+
 ## Patterns and Insights
 
 （待 outer loop cycle 1 后填充。）
