@@ -1,0 +1,26 @@
+=== B1 (Qwen3-TTS) vs B0 (real audios) at wav2vec2 layer-12 ===
+TTS Dylan vs podcast_sichuan (中文真人): cos = 0.9421
+TTS Dylan vs cantonese_16k (粤语真人):   cos = 0.9513
+TTS Dylan vs scott (英文真人):           cos = 0.9378
+
+reference (run_004 baseline, real-vs-real):
+  same-language: cos > 0.96
+  cross-language: cos 0.90-0.93
+  atypical (Wan2.2 talk): cos 0.60-0.85
+
+TTS layer-12 norm: 4.698
+real_zh layer-12 norm: 4.359
+
+=== Per-layer cos (TTS vs real_zh) ===
+  layer  1: cos = 0.5961
+  layer  2: cos = 0.7371
+  layer  3: cos = 0.8052
+  layer  4: cos = 0.7969
+  layer  5: cos = 0.8037
+  layer  6: cos = 0.8085
+  layer  7: cos = 0.7983
+  layer  8: cos = 0.8571
+  layer  9: cos = 0.8763
+  layer 10: cos = 0.9087
+  layer 11: cos = 0.9956
+  layer 12: cos = 0.9421

@@ -96,7 +96,8 @@ experiments:
     - "FlashHead audio confidence threshold pass rate"
   baseline_value: null   # to be measured: Phase 1 naive pipeline SyncNet on the same val set
   best_value: null
-  total_runs: 5
+  total_runs: 6
+  best_value: 0.9421  # layer-12 cos sim TTS_dylan vs real_zh_podcast — first real B1-B0 measurement
   trajectory:
     - run_id: "run_001"
       hypothesis: "H0"
@@ -132,6 +133,26 @@ experiments:
       blockers:
         - "GPU OOM persists across loop tick #2 (200MB free)"
         - "pip install blocked: flashhead env pip resolves to ~/.local/lib/python3.10 (CLAUDE.md contamination warning)"
+    - run_id: "run_006"
+      hypothesis: "H0"
+      type: "first-real-metric + design-revision"
+      metric_value: 0.9421
+      delta: null
+      wall_time_min: 6
+      change_summary: "Solved TTS blocker via Qwen3-TTS skill (systemd service @ 127.0.0.1:8200, voice=dylan). Generated 4.16s synthetic Chinese speech for sentence '今天天气不错...'. Resampled 24k→16k, extracted wav2vec2 features (104, 12, 768). **First real B1-B0 metric**: TTS vs real_zh_podcast layer-12 cos = 0.9421 (between cross-language 0.90-0.93 and same-language >0.96). **Per-layer pattern**: layer 1 cos = 0.596, layer 11 cos = 0.9956, layer 12 cos = 0.9421. Synthetic-vs-real domain shift concentrated in EARLY layers (acoustic), nearly zero in late layers (semantic). Updated BridgeMLPLight with `layer_gate` (12 learnable scalars init=0, sigmoid-gated output, lets model pass-through identity for late layers and focus capacity on early)."
+      timestamp: "2026-05-08"
+      git_commit: pending
+      key_finding: |
+        Synthetic speech (Qwen3-TTS Dylan) vs real Chinese speech (podcast_sichuan) wav2vec2
+        per-layer cosine similarity:
+          layer  1: 0.5961  (LARGE shift — acoustic / low-level)
+          layer  3: 0.8052
+          layer  6: 0.8085
+          layer  9: 0.8763
+          layer 11: 0.9956  (NEARLY IDENTICAL — semantic abstraction)
+          layer 12: 0.9421
+        FlashHead's AudioProjModel flatten-mixes ALL 12 layers → inherits this domain shift.
+        Bridge MLP capacity should focus on early layers; layer_gate added.
     - run_id: "run_005"
       hypothesis: "H0 + H1"
       type: "B0-video + source-analysis"

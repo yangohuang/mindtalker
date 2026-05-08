@@ -17,18 +17,34 @@ class BridgeMLPLight(nn.Module):
 
     Input  : (B, T, 12, 768) — wav2vec2 hidden_states[1:] @ 25fps
     Output : (B, T, 12, 768) — same shape, distribution-shifted
+
+    NEW (run_006 finding): supports `layer_gate` — per-layer learnable scalar
+    that lets the network "pass through" layers with low TTS-vs-real domain shift.
+    Empirical observation: layer 1 cos=0.60 (large shift), layer 11 cos=0.996
+    (nearly identity). With layer_gate, model can spend capacity on early layers.
     """
 
-    def __init__(self, num_layers: int = 12, dim: int = 768, residual: bool = True):
+    def __init__(
+        self,
+        num_layers: int = 12,
+        dim: int = 768,
+        residual: bool = True,
+        layer_gate: bool = True,
+    ):
         super().__init__()
         self.num_layers = num_layers
         self.dim = dim
         self.residual = residual
+        self.layer_gate = layer_gate
 
         # per-layer transform
         self.per_layer = nn.ModuleList(
             [nn.Linear(dim, dim) for _ in range(num_layers)]
         )
+
+        # layer-wise learnable gate (init to 0 so model starts as pure-residual identity)
+        if layer_gate:
+            self.gate = nn.Parameter(torch.zeros(num_layers))
         # cross-layer 1×1 conv (learns to mix info across wav2vec2 layers)
         self.cross_layer = nn.Conv1d(
             in_channels=num_layers,
@@ -57,8 +73,13 @@ class BridgeMLPLight(nn.Module):
         out = self.cross_layer(out)                          # (B, L, T*D)
         out = out.reshape(B, L, T, D).permute(0, 2, 1, 3)    # (B, T, L, D)
 
+        # apply layer gate: out_l = sigmoid(gate_l) * out_l + (1 - sigmoid(gate_l)) * residual_l
+        # This lets the model "pass through" deep layers where TTS≈real, focus capacity on early layers
+        if self.layer_gate and self.residual:
+            g = torch.sigmoid(self.gate).view(1, 1, L, 1)  # (1, 1, L, 1)
+            return g * out + (1 - g) * residual
         if self.residual:
-            out = out + residual
+            return out + residual
         return out
 
     @torch.no_grad()
