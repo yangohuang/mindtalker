@@ -96,7 +96,7 @@ experiments:
     - "FlashHead audio confidence threshold pass rate"
   baseline_value: null   # to be measured: Phase 1 naive pipeline SyncNet on the same val set
   best_value: null
-  total_runs: 2
+  total_runs: 3
   trajectory:
     - run_id: "run_001"
       hypothesis: "H0"
@@ -120,11 +120,52 @@ experiments:
         - "GPU OOM (~24GB used by minicpm/flashhead/digithuman processes from prior sessions). Cannot run FlashHead inference until GPU clears."
       design_changes:
         - "Replaced 'single Phase 1 baseline' with 4-tier baseline matrix (B0 upper bound / B1 Phase 1 / B2 H0 Bridge / B3 ceiling proxy). B0 measurement is true prerequisite, not just B1."
+    - run_id: "run_003"
+      hypothesis: "H0"
+      type: "scaffolding"
+      metric_value: null
+      delta: null
+      wall_time_min: 5
+      change_summary: "GPU still 200MB free → CPU prep branch. Wrote: (1) src/syncnet_eval.py with 3 backends (stub/librosa/syncnet) — real SyncNet install deferred due to flashhead env's pip resolving to ~/.local (CLAUDE.md flagged contamination); (2) src/bridge_mlp_train.py full training loop with cos+mse_norm+identity-warmup losses, dry-run on CPU 5 steps loss monotone decrease 0.4317→0.4257 ✓; (3) data/val_set_plan.md with AISHELL-3 / WenetSpeech / local-spike options + Bridge MLP training data generation protocol."
+      timestamp: "2026-05-08"
+      git_commit: pending
+      blockers:
+        - "GPU OOM persists across loop tick #2 (200MB free)"
+        - "pip install blocked: flashhead env pip resolves to ~/.local/lib/python3.10 (CLAUDE.md contamination warning)"
 
 outer_loop:
-  cycle: 0
-  last_direction: null
-  last_reflection: ""
+  cycle: 1
+  last_direction: "DEEPEN"
+  last_reflection: |
+    Cycle 1 reflection (after run_001-003):
+
+    PATTERNS:
+    - Inner loop has yielded 2 design revisions (4-tier baseline, identity-init for BridgeMLP).
+      This is healthy — inner loop should produce design improvements, not just metrics.
+    - GPU contention is the primary external blocker. CPU-side prep accumulated cleanly
+      (3 src files + 1 plan), so progress isn't blocked, just rerouted.
+
+    WHAT WE'VE RULED OUT:
+    - Trying to torchaudio in flashhead env (no torchaudio); use librosa+soundfile
+    - MiniCPM-o-2.6-int4 path (incomplete download); use 4.5-awq instead
+    - Direct pip install in flashhead env (~/.local pip contamination); plan: clean conda env
+
+    PATTERNS NOT YET CLEAR:
+    - Will Bridge MLP have any signal to learn? Depends on whether MiniCPM-o-derived
+      wav2vec2 features actually differ from real-audio-derived ones (B0 vs B1 gap).
+      Cannot answer until GPU frees. This is the dominant epistemic question now.
+    - Will identity-init regularization help or constrain? Unknown until real data.
+
+    DECISION: DEEPEN on H0
+    - All scaffolding is in place. Next critical experiment: actually generate paired
+      (src, tgt) features and run training. Requires GPU OR sufficient CPU patience.
+    - Do NOT pivot — H0 is well-scoped and B0 measurement is the clear next step.
+    - Do NOT broaden — premature; H0 unanswered.
+    - Do NOT conclude — no metrics yet.
+
+    NEXT MILESTONE: First B0 measurement (real audio → FlashHead → SyncNet score).
+    Estimated: needs ~5GB free GPU + SyncNet install. Until then, queue more CPU-side
+    work or consider asking user to free GPU.
 
 workspace:
   findings: "findings.md"
