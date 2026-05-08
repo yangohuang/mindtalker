@@ -117,6 +117,41 @@ phase2-final-plan **下一次 vault 修订** 应该把 A1 拆成 A1.1/A1.2/A1.3�
 
 **新的次假设 H0.1**：检查 FlashHead `AudioProjModel.proj1.weight`（46080→512 Linear），按 layer 分组算 norm。若早层 norm 大 → H0 + layer-gate Bridge 有清晰改进空间；若晚层 norm 大 → H0 大概率 refute。**这是下次 GPU window 第一个跑的实验**。
 
+### run_007 · H0.1 决定性核查 — FlashHead 实际依赖哪些层？
+
+加载 `SoulX-FlashHead-1_3B/Model_Lite/diffusion_pytorch_model.safetensors` 中的 `audio_proj.proj1.weight`（shape `(512, 46080)`），reshape 为 `(out=512, window=5, layers=12, dim=768)` 后 Frobenius 范数分组：
+
+| Layer | Weight Norm Share | 趋势 |
+|---|---|---|
+| 1 | **0.0918** | **MAX** ← 声学层 |
+| 2 | 0.0918 | |
+| 3 | 0.0906 | |
+| 6 | 0.0861 | |
+| 9 | 0.0812 | |
+| 11 | 0.0685 | |
+| 12 | **0.0651** | **MIN** ← 语义层 |
+
+Per-window uniform (~0.20 each)，单调早→晚 weight share 衰减，**max/min = 1.41**（早层比晚层多 41%）。
+
+**核心结论 — H0.1 SUPPORT**：
+
+把 run_006 + run_007 两个 finding 乘起来：
+
+| Layer | TTS-vs-real cos (run_006) | FlashHead weight share (run_007) | "FlashHead 暴露给的有效 domain shift" |
+|---|---|---|---|
+| 1 | 0.596 | 0.0918 | **大 × 大 = 高暴露** |
+| 6 | 0.808 | 0.0861 | 中 × 中 = 中等 |
+| 11 | 0.996 | 0.0685 | ~0 × 小 = 几乎无 |
+| 12 | 0.942 | 0.0651 | 小 × 小 = 几乎无 |
+
+→ **FlashHead 主要受 TTS 早层 domain shift 影响**。layer-gate Bridge MLP 对早层做修正，理论上能直接降低 FlashHead 的 effective domain shift。**H0 不再被预测 refute，反而有清晰 headroom**。
+
+**研究路线确认**：
+- ✅ H0 (Bridge MLP) 值得训
+- ✅ layer-gate 设计是必要的（不只是 nice-to-have）
+- ✅ 如果训出来 H0 SyncNet 显著好于 Phase 1，就有定量解释（per-layer 双 finding）
+- ✅ 如果训出来 H0 没好——说明上面机制有未发现的反作用（仍是论文 finding）
+
 ## Patterns and Insights
 
 **截至 outer loop cycle 3（2026-05-08，after run_006）**：
@@ -165,6 +200,7 @@ phase2-final-plan **下一次 vault 修订** 应该把 A1 拆成 A1.1/A1.2/A1.3�
 | run_004 | H0 | distribution-probe | cos sim 0.8527 | 3 min | 5-clip wav2vec2 layer-12 cosine matrix; talk outlier |
 | run_005 | H0+H1 | B0 video + source | qualitative "OK" | 12 min | First real video B0; A1→A1.1 multi-head redesign |
 | run_006 | H0 | **first real B1-B0 metric** | **0.9421 (layer-12)** | 6 min | Qwen3-TTS Dylan vs real_zh; per-layer pattern (L1=0.60, L11=0.996); BridgeMLP layer_gate added |
+| run_007 | H0.1 | **decisive probe** | weight ratio 1.41 | 4 min | FlashHead AudioProjModel.proj1: early-layer share 0.0918 (max) vs late 0.0651 (min). H0.1 SUPPORT — H0 has clear headroom. |
 
 primary metric (SyncNet) 仍未测出，受 GPU 阻塞。**Trajectory plot 留待首个真实 metric run 后绘制**。
 

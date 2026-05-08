@@ -1,0 +1,20 @@
+# H0.1 · FlashHead AudioProjModel proj1 per-layer weight analysis
+
+Per-wav2vec2-layer weight L2-norm share:
+  layer   1: 0.0915
+  layer   2: 0.0918
+  layer   3: 0.0906
+  layer   4: 0.0909
+  layer   5: 0.0888
+  layer   6: 0.0861
+  layer   7: 0.0847
+  layer   8: 0.0839
+  layer   9: 0.0812
+  layer  10: 0.0770
+  layer  11: 0.0685
+  layer  12: 0.0651
+
+argmax = layer 2
+max share = 0.0918
+min share = 0.0651
+max/min ratio = 1.41
