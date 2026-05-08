@@ -1,0 +1,141 @@
+# Research State — MindTalker Phase 2
+# Bootstrapped from existing vault docs:
+#   - obsidian-vault/research/digitalhuman/mindtalker/phase2-final-plan.md
+#   - phase2-feasibility-analysis-gan.md (GAN harness Round 2)
+#   - phase2-feasibility-evaluator-report.md (fact-checked)
+
+project:
+  title: "MindTalker Phase 2 — Hidden-State Distillation from MiniMind-O Talker to FlashHead Lite"
+  question: "Can a 113M Omni-modal LLM's intermediate Talker hidden-state directly drive a 1.3B talking-head DiT, bypassing the audio decoder + wav2vec2 round-trip — on a single consumer GPU?"
+  status: active
+  started: "2026-05-08"
+  domain: "audio-driven talking head, multi-modal distillation, single-GPU research"
+  compute: "single RTX 4090 24GB"
+
+literature:
+  key_papers:
+    - id: "minimindo2026"
+      title: "MiniMind-O Technical Report: An Open Small-Scale Speech-Native Omni Model"
+      authors: "jingyaogong"
+      year: 2026
+      url: "https://github.com/jingyaogong/minimind-o"
+      relevance: "Provides Thinker-Talker architecture, Hidden Bridge L3 ablation, 8-layer Mimi codebook output, 4×3090/4h training. Core load-bearing prior."
+    - id: "soulx-flashhead2026"
+      title: "SoulX-FlashHead 1.3B"
+      authors: "Soul-AILab"
+      year: 2026
+      url: "https://github.com/Soul-AILab/SoulX-FlashHead"
+      relevance: "Target downstream renderer. wav2vec2-base-960h + AudioProjModel + Wan2.1 1.3B DiT. 96 FPS Lite on single 4090."
+    - id: "soulx-flashtalk2026"
+      title: "SoulX-FlashTalk 14B"
+      authors: "Soul-AILab"
+      year: 2025
+      relevance: "FlashHead's predecessor, full-quality reference."
+    - id: "moshi2024"
+      title: "Moshi / Mimi Codec"
+      authors: "Kyutai"
+      year: 2024
+      relevance: "12.5Hz × 8-layer RVQ audio tokenizer used by MiniMind-O."
+
+  open_problems:
+    - "Does a sub-200M LLM's intermediate hidden-state carry enough acoustic information to drive a 1.3B visual renderer?"
+    - "What is the minimum adapter capacity (Bridge MLP) sufficient to align Omni-LLM hidden-state to FlashHead's expected wav2vec2-style features?"
+    - "Does autoregressive prediction of CONTINUOUS features incur prohibitive accumulated error vs DISCRETE codebook prediction?"
+
+  evidence_gaps:
+    - "MiniMind-O has done Hidden Bridge ablation only on Mimi codebook output side; visual-driving side is unexplored."
+    - "FlashHead is trained on real wav2vec2 features extracted from audio; behavior on synthetic/predicted features is unknown."
+    - "No published work joint-trains a sub-200M Omni LLM with a >1B talking-head DiT on a single consumer GPU."
+
+hypotheses:
+  - id: H0
+    statement: "Bridge MLP (5-15M) trained to map MiniCPM-o-emitted audio's wav2vec2 features into FlashHead's preferred distribution beats raw wav2vec2 features on SyncNet score."
+    status: pending
+    motivation: "Phase 2.0 baseline. Cheapest, fastest. If beats raw, validates that a learned adapter is sufficient. If loses, validates that joint training is necessary. Either result is publishable."
+    parent: null
+    priority: high
+    estimated_compute_h: 4-8
+
+  - id: H1
+    statement: "MindTalker A1 (Talker outputs wav2vec2 last_hidden_state 1-layer 768D @ 12.5Hz, 2x upsample to 25fps, 12-layer up-projector ~7M, all FlashHead frozen) achieves SyncNet score ≥ Phase 1 naive pipeline."
+    status: pending
+    motivation: "Core thesis. Tests whether Hidden Bridge can directly drive a visual renderer, bypassing audio decoder + wav2vec2 reencode round-trip."
+    parent: null
+    priority: high
+    estimated_compute_h: 6-12
+
+  - id: H2
+    statement: "MindTalker A1 SyncNet score > Bridge MLP baseline (H0)."
+    status: pending
+    motivation: "Strong-thesis test. If True → Hidden Bridge directly carries acoustic info beyond what wav2vec2 features expose. If False → Bridge MLP suffices, joint training unnecessary."
+    parent: H1
+    priority: high
+    estimated_compute_h: depends on H0+H1
+
+  - id: H3
+    statement: "Hidden Bridge optimal layer for visual driving differs from layer 3 (MiniMind-O's Mimi-codebook optimal). Layer ablation will show different optimum."
+    status: pending
+    motivation: "MiniMind-O's L3 was ablated for Mimi output; visual-driving might prefer a different layer (more acoustic = earlier; more semantic = later)."
+    parent: H1
+    priority: medium
+    estimated_compute_h: 3-5
+
+  - id: H4
+    statement: "Teacher-forcing during early training + schedule-sampling switch beats pure self-forcing on continuous-feature autoregressive convergence."
+    status: pending
+    motivation: "Continuous features lack discrete-codebook quantization 'protection' against accumulated error. Teacher forcing at start may be necessary."
+    parent: H1
+    priority: medium
+    estimated_compute_h: 2-4
+
+experiments:
+  proxy_metric: "SyncNet score (LSE-D ↓ / LSE-C ↑) on held-out 100-clip validation set"
+  secondary_metrics:
+    - "Per-layer cosine similarity (pred vs target wav2vec2 hidden_states)"
+    - "Layer-wise reconstruction MSE (variance-normalized)"
+    - "FlashHead audio confidence threshold pass rate"
+  baseline_value: null   # to be measured: Phase 1 naive pipeline SyncNet on the same val set
+  best_value: null
+  total_runs: 0
+  trajectory: []
+
+outer_loop:
+  cycle: 0
+  last_direction: null
+  last_reflection: ""
+
+workspace:
+  findings: "findings.md"
+  log: "research-log.md"
+  literature_dir: "literature/"
+  experiments_dir: "experiments/"
+  to_human_dir: "to_human/"
+  paper_dir: "paper/"
+  src_dir: "src/"
+  data_dir: "data/"
+
+# Compute / environment context (auto-detected, agent-maintained)
+environment:
+  gpu: "RTX 4090 24GB"
+  python: "3.10 (conda env to be created: mindtalker)"
+  pytorch: "2.6 + CUDA 12.4"
+  external_repos:
+    - path: "/path/to/yg/code/github/SoulX/SoulX-FlashHead"
+      role: "downstream renderer (frozen)"
+    - path: "/path/to/yg/code/github/SoulX/SoulX-FlashHead/models/wav2vec2-base-960h"
+      role: "audio encoder for ground-truth target features"
+    - path: "to-be-cloned: github.com/jingyaogong/minimind-o"
+      role: "upstream Talker (to retrain)"
+  constraints:
+    - "single GPU only, no distributed training"
+    - "local development: bind dev servers to 127.0.0.1 only"
+    - "conda env isolation strict — no ~/.local pollution"
+
+# Known fact-checked corrections vs original Phase 2 doc
+fact_check_corrections:
+  - "FlashHead uses wav2vec2-base-960h (English), NOT chinese-wav2vec2-base"
+  - "MiniMind-O ASR is SenseVoice, NOT Whisper"
+  - "MiniMind-O training is 4×3090 / 4h (≈16 GPU·h), NOT single-3090 / 2h"
+  - "FlashHead expects 25fps × 12 layers × 768D (already aligned by linear_interpolation BEFORE transformer encoder), NOT 50Hz raw"
+  - "FlashHead AudioProjModel is flatten+Linear (5×12×768 → 46080-dim → 512), NOT cross-attention; cross-attention happens in DiT block"
+  - "audio_window=5 is bidirectional ±2 frames in training — autoregressive inference needs 80ms padding/delay"

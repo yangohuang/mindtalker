@@ -1,0 +1,28 @@
+# 大文件不入 git
+data/*.parquet
+data/*.bin
+data/*.pt
+data/*.npy
+data/*.wav
+data/*.mp4
+**/checkpoints/
+**/*.ckpt
+**/__pycache__/
+**/.ipynb_checkpoints/
+*.pyc
+
+# 模型权重（git lfs 都不要）
+models/
+
+# 临时实验输出
+experiments/*/results/raw/
+experiments/*/results/tmp/
+
+# python venv / conda
+.venv/
+.conda/
+
+# 大日志
+*.log
+to_human/*.html
+to_human/*.pdf
