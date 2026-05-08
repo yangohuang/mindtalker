@@ -96,17 +96,30 @@ experiments:
     - "FlashHead audio confidence threshold pass rate"
   baseline_value: null   # to be measured: Phase 1 naive pipeline SyncNet on the same val set
   best_value: null
-  total_runs: 1
+  total_runs: 2
   trajectory:
     - run_id: "run_001"
       hypothesis: "H0"
       type: "design-verification"
-      metric_value: null     # not a metric run; design check only
+      metric_value: null
       delta: null
       wall_time_min: 1
       change_summary: "BridgeMLPLight params verified 7.09M, BridgeMLPHeavy 92.29M. I/O shape (B,T,12,768) confirmed correct for FlashHead input. Smoke test passed on flashhead conda env (torch 2.7.1+cu128)."
       timestamp: "2026-05-08"
+      git_commit: b13f608
+    - run_id: "run_002"
+      hypothesis: "H0"
+      type: "stage-spike"
+      metric_value: null
+      delta: null
+      wall_time_min: 2
+      change_summary: "Phase 1 wav2vec2 stage spike on CPU (GPU occupied by other processes). 65.92s podcast_sichuan audio → 1648 frames × 12 layers × 768D, perfect 25fps alignment. Mean -0.0032 std 0.3700 (normal). FlashHead-side feature extraction confirmed working. Wrote minicpm_o_stage.py wrapper for Stage 1 (deferred GPU-blocked execution)."
+      timestamp: "2026-05-08"
       git_commit: pending
+      blockers:
+        - "GPU OOM (~24GB used by minicpm/flashhead/digithuman processes from prior sessions). Cannot run FlashHead inference until GPU clears."
+      design_changes:
+        - "Replaced 'single Phase 1 baseline' with 4-tier baseline matrix (B0 upper bound / B1 Phase 1 / B2 H0 Bridge / B3 ceiling proxy). B0 measurement is true prerequisite, not just B1."
 
 outer_loop:
   cycle: 0
