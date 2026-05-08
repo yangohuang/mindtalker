@@ -23,7 +23,26 @@
 
 ## Key Results
 
-（无实验，待 H0 Bridge MLP baseline 跑出。）
+### run_004 · Wav2Vec2 Layer-12 Features Cross-Clip Cosine (5 real audios)
+
+| | 001 | scott | canton | talk | zero_shot |
+|---|---|---|---|---|---|
+| 001 (Chinese podcast 65.9s) | 1.000 | 0.903 | 0.962 | **0.601** | 0.917 |
+| scott (English 28.7s) | 0.903 | 1.000 | 0.928 | 0.848 | 0.933 |
+| cantonese (37.5s) | 0.962 | 0.928 | 1.000 | 0.700 | 0.961 |
+| talk (Wan2.2 example 5.0s) | **0.601** | 0.848 | 0.700 | 1.000 | 0.773 |
+| zero_shot_prompt (3.5s) | 0.917 | 0.933 | 0.961 | 0.773 | 1.000 |
+
+**off-diagonal mean cos = 0.8527, min = 0.601 (001 vs talk)**
+
+Layer-12 norm range: 4.36 (001) — 7.53 (talk). **talk 显著 outlier**：layer-12 norm 高 70% + cos drop。Wan2.2/talk.wav 5s 短样本，可能含背景音乐 / 韵律 atypical。
+
+**观察**：
+- 同语种家族（001 podcast / cantonese 中文族）cos 0.962 — 几乎不变
+- 跨语种（English ↔ Chinese）cos 0.90-0.93 — 小变化
+- atypical audio （talk）vs normal speech：cos 跌至 0.60-0.85 — 大变化
+
+**对 H0 的含义**：wav2vec2 layer-12 对说话人/语种弱敏感、对 audio-quality atypicality 强敏感。如果 MiniCPM-o 输出听上去是"普通合成语音"（无明显 artifact），它的 features 与真人 podcast features 的 cos sim 估计 > 0.93 — Bridge MLP 可学习 gap 偏小，但非零。如果有合成 artifact，gap 显著。**关键 next experiment：跑一次 MiniCPM-o 输出 vs 同句真人录音的 features 对比**（需 GPU）。
 
 ## Patterns and Insights
 
@@ -62,6 +81,7 @@
 | run_001 | H0 | design-verify | n/a | 1 min | BridgeMLPLight 7.09M smoke test ✓ |
 | run_002 | H0 | stage-spike | n/a | 2 min | wav2vec2 stage CPU spike ✓ (1648, 12, 768) |
 | run_003 | H0 | scaffolding | loss 0.43→0.43 dry-run | 5 min | training loop + syncnet stub + val plan |
+| run_004 | H0 | distribution-probe | cos sim 0.8527 | 3 min | 5-clip wav2vec2 layer-12 cosine matrix; talk outlier |
 
 primary metric (SyncNet) 仍未测出，受 GPU 阻塞。**Trajectory plot 留待首个真实 metric run 后绘制**。
 
