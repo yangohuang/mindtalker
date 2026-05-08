@@ -96,7 +96,7 @@ experiments:
     - "FlashHead audio confidence threshold pass rate"
   baseline_value: null   # to be measured: Phase 1 naive pipeline SyncNet on the same val set
   best_value: null
-  total_runs: 3
+  total_runs: 4
   trajectory:
     - run_id: "run_001"
       hypothesis: "H0"
@@ -132,6 +132,15 @@ experiments:
       blockers:
         - "GPU OOM persists across loop tick #2 (200MB free)"
         - "pip install blocked: flashhead env pip resolves to ~/.local/lib/python3.10 (CLAUDE.md contamination warning)"
+    - run_id: "run_004"
+      hypothesis: "H0"
+      type: "distribution-probe"
+      metric_value: 0.8527  # off-diagonal mean cos sim, layer-12, 5 real-audio clips
+      delta: null  # no baseline yet
+      wall_time_min: 3
+      change_summary: "Cloned minimind-o (13MB, github.com/jingyaogong/minimind-o) for H1 prep. Extracted wav2vec2 features for 4 more local audios (cantonese, scott, zero_shot, talk). Wrote src/feature_distribution_probe.py. Findings: layer-12 cross-clip cos sim mean=0.8527, range 0.60-0.96. talk audio is outlier (cos 0.60 vs podcast, layer-12 norm 7.53 vs others ~4.5). Same-language pairs cos > 0.96, cross-language 0.90-0.93, atypical audio 0.60-0.85. Implication for H0: wav2vec2 features sensitive to audio quality but weakly to speaker/language."
+      timestamp: "2026-05-08"
+      git_commit: pending
 
 outer_loop:
   cycle: 1

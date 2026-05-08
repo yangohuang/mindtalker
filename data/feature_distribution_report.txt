@@ -1,0 +1,13 @@
+# Feature Distribution Probe — 5 clips
+
+clips: ['001', '2_scott_0_103_103_28s', 'cantonese_16k', 'talk', 'zero_shot_prompt']
+
+Cosine matrix:
+[[1.    0.903 0.962 0.601 0.917]
+ [0.903 1.    0.928 0.848 0.933]
+ [0.962 0.928 1.    0.7   0.961]
+ [0.601 0.848 0.7   1.    0.773]
+ [0.917 0.933 0.961 0.773 1.   ]]
+
+off-diag mean cos = 0.8527
+PCA-8 explained variance: [0.271 0.092 0.067 0.061 0.056 0.053 0.036 0.031]
