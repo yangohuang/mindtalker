@@ -84,6 +84,8 @@ def main():
                         default=RESEARCH_ROOT / "data/tts_b1_001_16k.wav",
                         help="Real audio used only to determine output video frame count")
     parser.add_argument("--save", type=Path, default=RESEARCH_ROOT / "data/flashhead_h1_001.mp4")
+    parser.add_argument("--head_ckpt", type=Path, default=None,
+                         help="Path to trained W2VHead .pt; if None, use random init (plumbing test)")
     parser.add_argument("--cond_image", type=Path, default=FLASHHEAD_ROOT / "examples/girl.png")
     parser.add_argument("--ckpt_dir", type=Path, default=FLASHHEAD_ROOT / "models/SoulX-FlashHead-1_3B")
     parser.add_argument("--wav2vec_dir", type=Path, default=FLASHHEAD_ROOT / "models/wav2vec2-base-960h")
@@ -107,7 +109,15 @@ def main():
     sys.path.insert(0, str(RESEARCH_ROOT / "src"))
     from h1_w2v_head import W2VHead
     head = W2VHead(hidden_size=768, num_layers=12).to(args.device).half().eval()
-    print(f"[H1] W2VHead params: {sum(p.numel() for p in head.parameters())/1e6:.2f}M (random init)")
+    if args.head_ckpt is not None and args.head_ckpt.exists():
+        sd = torch.load(str(args.head_ckpt), map_location="cpu")
+        # convert to half
+        sd = {k: v.half() for k, v in sd.items()}
+        head.load_state_dict(sd)
+        print(f"[H1] W2VHead loaded TRAINED weights from {args.head_ckpt}")
+    else:
+        print(f"[H1] W2VHead random init (plumbing test)")
+    print(f"[H1] W2VHead params: {sum(p.numel() for p in head.parameters())/1e6:.2f}M")
 
     # ---- Step 3: load FlashHead pipeline + monkey-patch preprocess_audio ----
     os.chdir(FLASHHEAD_ROOT)
