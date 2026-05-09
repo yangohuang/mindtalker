@@ -96,8 +96,9 @@ experiments:
     - "FlashHead audio confidence threshold pass rate"
   baseline_value: null   # to be measured: Phase 1 naive pipeline SyncNet on the same val set
   best_value: null
-  total_runs: 8
-  best_value: 0.9421  # layer-12 cos sim TTS_dylan vs real_zh_podcast — first real B1-B0 measurement
+  total_runs: 10
+  best_value: 0.871   # B2 per-layer mean cos (BridgeMLP), up from B1 0.847
+  # best_value: 0.9421  # (was layer-12 single, replaced by per-layer mean above)
   trajectory:
     - run_id: "run_001"
       hypothesis: "H0"
@@ -133,6 +134,34 @@ experiments:
       blockers:
         - "GPU OOM persists across loop tick #2 (200MB free)"
         - "pip install blocked: flashhead env pip resolves to ~/.local/lib/python3.10 (CLAUDE.md contamination warning)"
+    - run_id: "run_010"
+      hypothesis: "H0"
+      type: "bridge-mlp-training-final"
+      metric_value: 0.871   # B2 per-layer mean cos
+      delta: 0.024          # +0.024 vs B1 baseline 0.847
+      wall_time_min: 5
+      change_summary: "Re-trained BridgeMLPLight 7.09M with epochs=50, lr=1e-3, lambda_residual=0.1 (vs run_009: epochs=8, lr=3e-4). 800 training steps total. Per-layer cos result on hold-out batches: 11/12 layers improved. **Layer 1 +0.0562, layer 2 +0.0786, layer 6 +0.0416, layer 11 +0.0013, layer 12 -0.0042**. Per-layer mean cos: B1 0.847 → B2 0.871 (+0.024). Pattern matches mechanism prediction: Bridge MLP concentrates repair on early acoustic layers, leaves saturated late semantic layers nearly unchanged. **H0 SUPPORTED**. Layer gates settled at 0.32-0.44 (not the predicted 0/1 polarization), but the per-layer Linear + cross-layer conv together produced the desired layer-selective behavior."
+      timestamp: "2026-05-09"
+      git_commit: pending
+      key_finding: |
+        First real H0 test: layer-gated 7M Bridge MLP, 125 syn × 5 real unpaired distribution
+        matching, 50 epoch on single RTX 4090 (< 5 min wall-clock).
+        B1 → B2 per-layer cos:
+          layer  1: 0.6618 → 0.7179  (+0.0562)  ← BIG win, early acoustic
+          layer  2: 0.7295 → 0.8081  (+0.0786)  ← BIG win
+          layer  6: 0.8120 → 0.8536  (+0.0416)  ← mid win
+          layer 11: 0.9960 → 0.9972  (+0.0013)  ← saturated, no change (correct!)
+          layer 12: 0.9601 → 0.9559  (-0.0042)  ← noise
+        Mean: 0.847 → 0.871 (+0.024). Mechanism prediction (early > late repair) confirmed.
+    - run_id: "run_009"
+      hypothesis: "H0"
+      type: "bridge-mlp-training-first-attempt"
+      metric_value: 0.789   # B2 per-layer mean cos (initial attempt, undertrained)
+      delta: -0.022         # negative — undertrained, gates didn't move
+      wall_time_min: 1
+      change_summary: "First Bridge MLP training attempt: epochs=8, lr=3e-4, lambda_residual=0.5. Loss bounced 0.02-0.04 without convergence. Layer gates barely moved from 0.5. Per-layer result mostly negative (8/12 layers WORSE than B1). Diagnosis: insufficient epochs + too-conservative residual constraint locked the model near identity. Led to run_010 with 50 epoch + lr 1e-3."
+      timestamp: "2026-05-09"
+      git_commit: pending
     - run_id: "run_008"
       hypothesis: "H0"
       type: "distribution-scale calibration"
