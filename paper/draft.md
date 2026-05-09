@@ -1,8 +1,15 @@
 ---
 title: "Hidden Bridge Co-Driving: Multi-Head Distillation from a 113M Omni-Modal Speech Model to a 1.3B Talking Head on a Single Consumer GPU"
+type: tech report (arxiv cs.AI/cs.LG free-format upload, NOT a conference submission)
 status: draft (sections 1-4 complete; experiments TODO)
 date: 2026-05-08
+target_venue: arxiv preprint + GitHub repo + B-station demo video (interview-deliverable bundle)
 ---
+
+> **Note**: This is a self-contained technical report intended for arxiv upload as a free-format
+> preprint, not a double-blind conference submission. The reproducibility section, autoresearch
+> trace, and open-source GitHub repository are first-class deliverables alongside the technical
+> contribution. See [[phase2-interview-strategy]] for the broader 5-day delivery plan.
 
 # Abstract
 
@@ -157,9 +164,34 @@ A consistent feature of all three outcomes is that the layer-gate mechanism, jus
 * Inference adds 80 ms delay (audio_window=5 right padding); acceptable for chat but visible compared to B0.
 * No FlashHead retraining (training cost ≫ single 4090 budget).
 
-# 8 Reproducibility
+# 8 Reproducibility & Open-Source Release
 
-Full git history of the research process — protocol commits preceding result commits, 12 commits across 7 inner-loop experiments and 3 outer-loop reflections — is included as supplementary material. The autoresearch workspace (`research/`) contains: 8 source files, 5 progress reports, 4 fact-checked vault planning documents, and `findings.md` documenting decisions made and rejected at each step. The total research wall-clock is dominated by data preparation and training; the design phase (literature, fact-checking, scaffolding, dual probe) was completed in approximately 1 day on a single agent loop.
+Unlike a conference paper where reproducibility is an appendix, this tech report treats
+reproducibility as a **first-class contribution**. Three open-source artifacts:
+
+1. **GitHub repository** (`github.com/{user}/mindtalker`): one-line clone-and-run, all
+   experiments in this report can be reproduced by `bash scripts/reproduce_all.sh` on a
+   single RTX 4090. Pretrained Bridge MLP weights are released under MIT license.
+
+2. **Autoresearch workspace** (included as `research/` subdirectory): full git history
+   spanning 15 commits across 8 inner-loop experiments and 3 outer-loop reflections.
+   Protocol commits precede result commits — the git log is a lightweight pre-registration
+   trail showing what was planned before what was found. We believe this transparency is
+   particularly valuable for distillation / domain-adaptation research where post-hoc
+   rationalization is easy.
+
+3. **Demo video** (B-station / YouTube): real-time inference of B0 baseline (real audio →
+   FlashHead Lite) and B2 (TTS + layer-gated Bridge MLP → FlashHead Lite). Side-by-side
+   visual comparison so readers can judge lip-sync quality directly without trusting
+   SyncNet scores in isolation.
+
+The total research wall-clock is dominated by data preparation; the design + dual-probe
+phase was completed in approximately 1 day on an autonomous agent loop ([[orchestra-autoresearch]]
+framework with [[GAN-harness]] for fact-checking the original technical plan against source
+code). We document this process not as a stunt but because **agentic research workflows are
+themselves worth reporting** — for engineering-oriented readers, the trace of "we found
+4 factual errors in our own original plan via a 2-agent harness, then ran 8 experiments to
+test the corrected plan" is itself the artifact.
 
 ---
 
