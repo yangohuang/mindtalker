@@ -1,5 +1,12 @@
 # MindTalker · 单卡 4090 跑通端到端 Omni LLM 数字人
 
+> 📖 **完整方案**：[`docs/PROJECT-SPEC.md`](docs/PROJECT-SPEC.md)（13 节，TL;DR / mechanism / 训练 / 评测 / 面试讲法）
+> 📓 **实验日志**：[`docs/EXPERIMENT-LOG.md`](docs/EXPERIMENT-LOG.md)（15 inner-loop iter / 4 outer-loop reflection 时间轴）
+> 📄 **Tech report**：[`paper/draft.md`](paper/draft.md)（arxiv 自由格式，8 sections，3500 字）
+
+---
+
+
 > 把一个 113M omni LLM ([MiniMind-O](https://github.com/jingyaogong/minimind-o)) 和 一个 1.3B
 > 数字人渲染器 ([SoulX-FlashHead Lite](https://github.com/Soul-AILab/SoulX-FlashHead))
 > 在单张 RTX 4090 上端到端串起来，**绕过两次音频编解码往返**。
