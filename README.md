@@ -90,12 +90,26 @@ text/语义 → MiniMind-O Thinker (113M) → bridge_layer 3 hidden state
 
 ## 一行复现
 
+先进入本仓库根目录。FlashHead 和 MiniMind-O 默认位于本仓库的同级目录 `../SoulX-FlashHead`、`../minimind-o`。
+已有安装可通过环境变量指定（导入配置时展开 `~`，相对路径按启动目录解析）：
+
+```bash
+export FLASHHEAD_ROOT="$(cd ../SoulX-FlashHead && pwd)"
+export MINIMIND_REPO="$(cd ../minimind-o && pwd)"
+```
+
+也可以将变量设为自己的绝对路径。模型权重仍需按上游说明准备；现有命令行参数
+（如 `--ckpt_dir`、`--wav2vec_dir`、ASR 的 `--model_path`）优先于默认值。
+不同阶段使用已有的 `flashhead` / `minicpm` conda 环境，避免依赖混装。
+
 ### B0 baseline（真音频 → 视频）
 ```bash
-cd /path/to/yg/code/github/SoulX/SoulX-FlashHead
+(
+cd "${FLASHHEAD_ROOT:-../SoulX-FlashHead}"
 python generate_video.py --ckpt_dir models/SoulX-FlashHead-1_3B \
   --wav2vec_dir models/wav2vec2-base-960h --model_type lite \
   --cond_image examples/girl.png --audio_path examples/podcast_sichuan_16k.wav
+)
 ```
 
 ### B2（H0 Bridge MLP 介入）

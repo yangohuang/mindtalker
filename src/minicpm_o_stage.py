@@ -2,7 +2,7 @@
 MiniCPM-o Stage 1 — run on `minicpm` conda env, NOT flashhead env.
 
 Usage (from any env):
-    /path/to/miniforge3/envs/minicpm/bin/python src/minicpm_o_stage.py \\
+    conda run -n minicpm python src/minicpm_o_stage.py \\
         --prompt "Tell me a short story" \\
         --out_audio data/minicpm_out_001.wav
 

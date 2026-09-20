@@ -20,7 +20,7 @@ Stage A · 构建 paired dataset：transcripts + 16k audio → (text, real_w2v_f
 - segment 长度 1-10s 过滤（短的 ASR 不可靠，长的 wav2vec2 处理慢）
 
 用法：
-    PYTHONNOUSERSITE=1 /path/to/miniforge3/envs/flashhead/bin/python src/build_paired_dataset.py
+    PYTHONNOUSERSITE=1 conda run -n flashhead python src/build_paired_dataset.py
 """
 from __future__ import annotations
 
@@ -28,6 +28,11 @@ import argparse
 import json
 import sys
 from pathlib import Path
+
+if __package__:
+    from .project_paths import PROJECT_ROOT
+else:
+    from project_paths import PROJECT_ROOT
 
 import librosa
 import numpy as np
@@ -38,7 +43,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from phase1_pipeline import load_wav2vec2, extract_wav2vec_features
 
 
-ROOT = Path("/path/to/yg/code/mindtalker/research")
+ROOT = PROJECT_ROOT
 
 
 def main():

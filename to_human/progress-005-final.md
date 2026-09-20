@@ -119,4 +119,4 @@ D. **整理整个研究输出成可分享的 short blog/twitter thread**
 
 **vault**：[[phase2-final-plan]] · [[phase2-feasibility-analysis-gan]] · [[phase2-feasibility-evaluator-report]]
 
-**workspace**：`/path/to/yg/code/mindtalker/research/`（11 commits / 7 iter / 3 cycle / 1 video / 3 metrics）
+**workspace**：`./`（11 commits / 7 iter / 3 cycle / 1 video / 3 metrics）

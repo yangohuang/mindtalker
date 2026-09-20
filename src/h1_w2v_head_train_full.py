@@ -17,7 +17,7 @@ Pipeline:
   - Stage C full: 5000+ pairs / 100 epoch / 10-20h
 
 用法：
-    PYTHONNOUSERSITE=1 /path/to/miniforge3/envs/flashhead/bin/python src/h1_w2v_head_train_full.py \\
+    PYTHONNOUSERSITE=1 conda run -n flashhead python src/h1_w2v_head_train_full.py \\
         --epochs 50 --bs 16 --lr 1e-3
 """
 from __future__ import annotations
@@ -28,13 +28,17 @@ import sys
 import types
 from pathlib import Path
 
+if __package__:
+    from .project_paths import PROJECT_ROOT, MINIMIND_REPO
+else:
+    from project_paths import PROJECT_ROOT, MINIMIND_REPO
+
 import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
-ROOT = Path("/path/to/yg/code/mindtalker/research")
-MINIMIND_REPO = Path("/path/to/yg/code/github/minimind-o")
+ROOT = PROJECT_ROOT
 MINIMIND_WEIGHT = MINIMIND_REPO / "out"
 
 sys.path.insert(0, str(ROOT / "src"))

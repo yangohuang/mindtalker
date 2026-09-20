@@ -13,10 +13,14 @@ import argparse
 import sys
 from pathlib import Path
 
+if __package__:
+    from .project_paths import MINIMIND_REPO
+else:
+    from project_paths import MINIMIND_REPO
+
 import torch
 
 
-MINIMIND_REPO = Path("/path/to/yg/code/github/minimind-o")
 WEIGHT_DIR = MINIMIND_REPO / "out"   # downloaded by huggingface-cli
 sys.path.insert(0, str(MINIMIND_REPO))
 

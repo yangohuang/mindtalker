@@ -20,12 +20,17 @@ import json
 import sys
 from pathlib import Path
 
+if __package__:
+    from .project_paths import PROJECT_ROOT, MINIMIND_REPO
+else:
+    from project_paths import PROJECT_ROOT, MINIMIND_REPO
+
 import numpy as np
 import torch
 import torch.nn.functional as F
 
 
-RESEARCH = Path("/path/to/yg/code/mindtalker/research")
+RESEARCH = PROJECT_ROOT
 sys.path.insert(0, str(RESEARCH / "src"))
 
 
@@ -43,7 +48,7 @@ def main():
     device = args.device
 
     # ---- Load MiniMind-O once ----
-    sys.path.insert(0, "/path/to/yg/code/github/minimind-o")
+    sys.path.insert(0, str(MINIMIND_REPO))
     import types, importlib.machinery
     for mod_name in ("onnxruntime", "funasr"):
         if mod_name not in sys.modules:
@@ -55,7 +60,7 @@ def main():
     from model.model_omni import MiniMindOmni, OmniConfig
     from transformers import AutoTokenizer
 
-    WEIGHT = Path("/path/to/yg/code/github/minimind-o/out")
+    WEIGHT = MINIMIND_REPO / "out"
     print(f"[h1train] Loading MiniMind-O from {WEIGHT}")
     tokenizer = AutoTokenizer.from_pretrained(str(WEIGHT), trust_remote_code=True)
     cfg = OmniConfig()
