@@ -60,12 +60,12 @@ CPU 跑 wav2vec2 → tgt 生成 ~实时（已验证：65.92s audio CPU 处理几
 ## 立即可做（不依赖 GPU/网络）
 
 1. ✅ Plan 已写
-2. ⏳ 待 GPU 空 → 下载 AISHELL-3（12GB，预计 1-2h on local-network）
+2. ⏳ 待 GPU 空 → 下载 AISHELL-3（12GB，预计 1-2h，取决于网络速度）
 3. ⏳ 待 GPU 空 → 跑 MiniCPM-o-4.5 复述生成 src audio
 4. ✅ 现可做：CPU 处理 wav2vec2 抽 tgt features（一次性 5-8h CPU）
 
 ## 风险
 
-- **AISHELL-3 下载 local-network 慢**：用 hf-mirror.com 镜像或 modelscope
+- **AISHELL-3 下载速度受限**：用 hf-mirror.com 镜像或 modelscope
 - **MiniCPM-o 复述质量受 prompt 影响大**：需要 prompt engineering 让其严格按 transcript 念
 - **真人音频 vs MiniCPM-o 音频长度差异**：同一句子 MiniCPM-o 可能更慢/更快，需要 DTW 对齐或 trim 到等长

@@ -291,10 +291,11 @@ environment:
   gpu: "RTX 4090 24GB"
   python: "3.10 (conda env to be created: mindtalker)"
   pytorch: "2.6 + CUDA 12.4"
+  # Paths below are relative to this repository root; runtime overrides are in README.
   external_repos:
-    - path: "/path/to/yg/code/github/SoulX/SoulX-FlashHead"
+    - path: "../SoulX-FlashHead"
       role: "downstream renderer (frozen)"
-    - path: "/path/to/yg/code/github/SoulX/SoulX-FlashHead/models/wav2vec2-base-960h"
+    - path: "../SoulX-FlashHead/models/wav2vec2-base-960h"
       role: "audio encoder for ground-truth target features"
     - path: "to-be-cloned: github.com/jingyaogong/minimind-o"
       role: "upstream Talker (to retrain)"

@@ -20,13 +20,17 @@ import argparse
 import sys
 from pathlib import Path
 
+if __package__:
+    from .project_paths import FLASHHEAD_ROOT
+else:
+    from project_paths import FLASHHEAD_ROOT
+
 import librosa
 import numpy as np
 import soundfile as sf
 import torch
 
 
-FLASHHEAD_ROOT = Path("/path/to/yg/code/github/SoulX/SoulX-FlashHead")
 WAV2VEC_PATH = FLASHHEAD_ROOT / "models" / "wav2vec2-base-960h"
 FLASHHEAD_CKPT = FLASHHEAD_ROOT / "models" / "SoulX-FlashHead-1_3B"
 

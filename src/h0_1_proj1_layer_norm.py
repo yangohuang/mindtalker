@@ -17,11 +17,15 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+if __package__:
+    from .project_paths import FLASHHEAD_ROOT
+else:
+    from project_paths import FLASHHEAD_ROOT
+
 import numpy as np
 import torch
 
 
-FLASHHEAD_ROOT = Path("/path/to/yg/code/github/SoulX/SoulX-FlashHead")
 CKPT_DIR = FLASHHEAD_ROOT / "models" / "SoulX-FlashHead-1_3B"
 
 

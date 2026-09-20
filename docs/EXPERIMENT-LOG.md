@@ -17,7 +17,7 @@ related:
 
 > **本页是 dynamic log**，每次 autoresearch tick / 实验 / 反思后追加新条目，**不覆盖旧条目**。
 >
-> 完整 workspace：`/path/to/yg/code/mindtalker/research/`（git 历史是权威源）。
+> 完整 workspace：`./`（git 历史是权威源）。
 > 设计方案见 [[phase2-final-plan]]，事实核查见 [[phase2-feasibility-evaluator-report]]。
 >
 > **目标修正（2026-05-09）**：项目目标从"投 arxiv 顶会论文"改为"5 天面试弹药包（GitHub repo + arxiv tech report + demo 视频）"。tech report 与 arxiv 不冲突——arxiv 接受自由格式 tech report 上传，**该 arxiv 还是 arxiv**，不卡顶会 review 周期。详见 [[phase2-interview-strategy]]。
@@ -261,7 +261,7 @@ related:
 - `data/flashhead_h1_002_trained.mp4` — H1 第一段有 lip-sync 的视频
 - `data/video_frames/h1_002_trained_frame_{01..04}.jpg`
 - `data/flashhead_h1_001.mp4` — H1 plumbing 视频
-- `/path/to/code/github/minimind-o/out/pytorch_model.bin` — 216MB MiniMind-O 权重
+- `../minimind-o/out/pytorch_model.bin` — 216MB MiniMind-O 权重
 
 #### run_013 · 多 voice B2 视频泛化测试（5 min GPU）— 跨 voice 稳定性
 
@@ -470,7 +470,7 @@ H0 真正回答的问题：**"双 finding 链 (run_006 + run_007) 推出的 mech
 
 | 类别 | 路径 |
 |---|---|
-| Workspace 根 | `/path/to/yg/code/mindtalker/research/` |
+| Workspace 根 | `./` |
 | 状态文件 | `research-state.yaml` |
 | 完整 log | `research-log.md` |
 | 综合发现 | `findings.md` |

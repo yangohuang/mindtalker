@@ -16,7 +16,7 @@ Stage A · ASR 转写 + VAD 切句：data/audio_16k/*.wav → data/transcripts/*
 }
 
 用法（在 minicpm conda env 跑，已装 funasr）：
-    PYTHONNOUSERSITE=1 /path/to/miniforge3/envs/minicpm/bin/python src/asr_transcribe.py
+    PYTHONNOUSERSITE=1 conda run -n minicpm python src/asr_transcribe.py
 """
 from __future__ import annotations
 
@@ -25,7 +25,12 @@ import json
 import sys
 from pathlib import Path
 
-ROOT = Path("/path/to/yg/code/mindtalker/research")
+if __package__:
+    from .project_paths import PROJECT_ROOT, MINIMIND_REPO
+else:
+    from project_paths import PROJECT_ROOT, MINIMIND_REPO
+
+ROOT = PROJECT_ROOT
 AUDIO_DIR = ROOT / "data/audio_16k"
 TRANSCRIPT_DIR = ROOT / "data/transcripts"
 
@@ -33,7 +38,7 @@ TRANSCRIPT_DIR = ROOT / "data/transcripts"
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--device", default="cuda:0")
-    parser.add_argument("--model_path", default="/path/to/yg/code/github/minimind-o/model/SenseVoiceSmall",
+    parser.add_argument("--model_path", default=str(MINIMIND_REPO / "model/SenseVoiceSmall"),
                          help="SenseVoiceSmall path; if not exists, will try to download")
     parser.add_argument("--vad_model", default="fsmn-vad",
                          help="VAD model id (FunASR built-in)")

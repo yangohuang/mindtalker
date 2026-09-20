@@ -271,8 +271,10 @@ checkpoints      ~5 GB
 
 ### 工作目录
 
+以下为早期实验工作目录结构；本公开仓库对应其中的 `research/`，路径已改为通用示例。
+
 ```
-/path/to/yg/code/mindtalker/
+<workspace>/mindtalker/
 ├── research/                       ← autoresearch workspace
 │   ├── README.md                   ← GitHub repo entry
 │   ├── src/                        ← 19 个 .py
@@ -300,9 +302,9 @@ checkpoints      ~5 GB
 └── (Phase 1 实现，参考)
 ```
 
-外部依赖：
-- `/path/to/code/github/minimind-o/` — MiniMind-O 113M (216MB pytorch_model.bin from `jingyaogong/minimind-3o-pytorch`)
-- `/path/to/code/github/SoulX/SoulX-FlashHead/` — FlashHead Lite 1.3B + wav2vec2-base-960h
+外部依赖（相对于本仓库根目录；也可通过 README 中的环境变量指定）：
+- `../minimind-o/` — MiniMind-O 113M (216MB pytorch_model.bin from `jingyaogong/minimind-3o-pytorch`)
+- `../SoulX-FlashHead/` — FlashHead Lite 1.3B + wav2vec2-base-960h
 
 ---
 
@@ -400,8 +402,8 @@ Reviewer 问的'是否 cherry-picked'，我用 4 voice 测试预先答了。"
 
 ### 实验细节
 - [[01-EXPERIMENT-LOG]] — 15 inner-loop iter / 4 outer-loop reflection 完整时间轴
-- [`research/paper/draft.md`](file:///path/to/yg/code/mindtalker/research/paper/draft.md) — arxiv tech report 8 sections / 3500 字
-- [`research/README.md`](file:///path/to/yg/code/mindtalker/research/README.md) — GitHub repo entry
+- [`paper/draft.md`](../paper/draft.md) — arxiv tech report 8 sections / 3500 字
+- [`README.md`](../README.md) — GitHub repo entry
 
 ### 同生态
 - [[research/digitalhuman/soulx]] — SoulX 三部曲合并报告（FlashHead 是其 Phase 2）

@@ -12,7 +12,7 @@
 
 ## 外部论文（待补 — 进入 inner loop 后第一时间补充）
 
-由于网络受限（实验环境网络），优先用本地源 + 已有 vault 笔记。需要新增 literature 时通过 Exa MCP / arXiv 检索。
+由于实验环境网络受限，优先用本地源 + 已有 vault 笔记。需要新增 literature 时通过 Exa MCP / arXiv 检索。
 
 ### 关键论文优先级（按 fetch 顺序）
 

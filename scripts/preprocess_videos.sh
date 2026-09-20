@@ -15,7 +15,8 @@
 #   face crop (mediapipe): 跳过此步可省 4-6h（H1 训 W2VHead 不需要 face crop，只需要 audio）
 
 set -e
-cd /path/to/yg/code/mindtalker/research
+PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd -- "$PROJECT_ROOT"
 
 RAW_DIR=data/raw_videos
 AUDIO_DIR=data/audio_16k
