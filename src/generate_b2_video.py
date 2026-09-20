@@ -17,13 +17,17 @@ import os
 import sys
 from pathlib import Path
 
+if __package__:
+    from .project_paths import FLASHHEAD_ROOT, PROJECT_ROOT
+else:
+    from project_paths import FLASHHEAD_ROOT, PROJECT_ROOT
+
 import numpy as np
 import torch
 from einops import rearrange
 
 
-FLASHHEAD_ROOT = Path("/home/yg/yg/code/github/SoulX/SoulX-FlashHead")
-RESEARCH_ROOT = Path("/home/yg/yg/code/mindtalker/research")
+RESEARCH_ROOT = PROJECT_ROOT
 sys.path.insert(0, str(FLASHHEAD_ROOT))
 sys.path.insert(0, str(RESEARCH_ROOT))
 

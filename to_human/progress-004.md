@@ -10,7 +10,7 @@
 | run_004 | distribution-probe | 3 min | **首个量化数据** — 5 段真实音频 wav2vec2 layer-12 跨剪辑 cos 矩阵 |
 
 并行任务：
-- ✅ git clone `github.com/jingyaogong/minimind-o`（13MB）→ `/home/yg/yg/code/github/minimind-o/`
+- ✅ git clone `github.com/jingyaogong/minimind-o`（13MB）→ `../minimind-o/`
 - ✅ wav2vec2 features × 4 段（cantonese / scott / zero_shot / talk）
 - ✅ Cross-clip cosine + PCA 分析
 

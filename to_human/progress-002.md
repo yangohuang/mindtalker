@@ -29,8 +29,8 @@
 
 | 模型 | 状态 | 路径 |
 |---|---|---|
-| FlashHead Lite 1.3B | ✅ 完整 | `~/yg/code/github/SoulX/SoulX-FlashHead/models/SoulX-FlashHead-1_3B` |
-| wav2vec2-base-960h | ✅ 完整 (英文版) | `~/yg/code/github/SoulX/SoulX-FlashHead/models/wav2vec2-base-960h` |
+| FlashHead Lite 1.3B | ✅ 完整 | `../SoulX-FlashHead/models/SoulX-FlashHead-1_3B` |
+| wav2vec2-base-960h | ✅ 完整 (英文版) | `../SoulX-FlashHead/models/wav2vec2-base-960h` |
 | MiniCPM-o-2_6-int4 | ❌ **不完整**（仅 1.1GB，无 safetensors） | HF cache |
 | MiniCPM-o-4_5-awq | ✅ 完整 12GB | HF cache |
 | MiniMind-O | ⏳ 未下载 | github.com/jingyaogong/minimind-o |

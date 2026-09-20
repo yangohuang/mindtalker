@@ -13,7 +13,7 @@
 
 | 项 | 状态 | 文件 |
 |---|---|---|
-| Workspace 初始化 | ✅ | `/home/yg/yg/code/mindtalker/research/` |
+| Workspace 初始化 | ✅ | `./` |
 | 5 个假设 H0-H4 定义 | ✅ | `research-state.yaml` |
 | 文献库导入（5 份 vault 文档） | ✅ | `literature/` |
 | H0 protocol locked + git committed | ✅ | `experiments/H0-bridge-mlp-baseline/protocol.md` |

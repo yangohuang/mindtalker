@@ -18,6 +18,11 @@ import hashlib
 from pathlib import Path
 from typing import Literal
 
+if __package__:
+    from .project_paths import FLASHHEAD_ROOT
+else:
+    from project_paths import FLASHHEAD_ROOT
+
 import numpy as np
 
 
@@ -106,8 +111,6 @@ def evaluate_batch(
 
 if __name__ == "__main__":
     # smoke test
-    sample_audio = Path(
-        "/home/yg/yg/code/github/SoulX/SoulX-FlashHead/examples/podcast_sichuan_16k.wav"
-    )
+    sample_audio = FLASHHEAD_ROOT / "examples/podcast_sichuan_16k.wav"
     print("stub:", evaluate("dummy.mp4", sample_audio, backend="stub"))
     print("librosa:", evaluate("dummy.mp4", sample_audio, backend="librosa"))

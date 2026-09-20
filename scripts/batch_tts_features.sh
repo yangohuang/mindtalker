@@ -9,7 +9,8 @@
 # For now P(real) is single-clip; batch will follow.
 
 set -e
-cd /home/yg/yg/code/mindtalker/research
+PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd -- "$PROJECT_ROOT"
 
 OUT_DIR=data/tts_batch
 mkdir -p "$OUT_DIR"

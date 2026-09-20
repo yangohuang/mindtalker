@@ -21,15 +21,18 @@ import sys
 import types
 from pathlib import Path
 
+if __package__:
+    from .project_paths import FLASHHEAD_ROOT, MINIMIND_REPO, PROJECT_ROOT
+else:
+    from project_paths import FLASHHEAD_ROOT, MINIMIND_REPO, PROJECT_ROOT
+
 import numpy as np
 import soundfile as sf
 import torch
 
 
-FLASHHEAD_ROOT = Path("/home/yg/yg/code/github/SoulX/SoulX-FlashHead")
-MINIMIND_REPO = Path("/home/yg/yg/code/github/minimind-o")
 WEIGHT_DIR = MINIMIND_REPO / "out"
-RESEARCH_ROOT = Path("/home/yg/yg/code/mindtalker/research")
+RESEARCH_ROOT = PROJECT_ROOT
 
 
 def load_minimind(device: str):
